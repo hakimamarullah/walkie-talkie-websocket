@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💕 Dating Walkie-Talkie</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #fffdf8;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      padding: 30px;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 8px;
+    }
+
+    .tagline {
+      font-size: 1em;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .instructions {
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      font-size: 0.95em;
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .profile-setup {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .profile-input {
+      padding: 10px 14px;
+      font-size: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      flex: 1;
+      min-width: 140px;
+      background: #fff;
+      color: #333;
+    }
+
+    .profile-input:focus {
+      border-color: #FFCB00;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 203, 0, 0.3);
+    }
+
+    button {
+      background: #FFCB00;
+      color: #222;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: #e6b700;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .find-match-btn {
+      font-size: 16px;
+      padding: 14px 26px;
+    }
+
+    .matching-status {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .matching-status.connected {
+      background: #f9fff5;
+      border: 1px solid #c6efb3;
+    }
+
+    .status-text {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    .partner-info {
+      font-size: 0.95em;
+      color: #555;
+    }
+
+    .talk-button {
+      background: #FFCB00;
+      color: #222;
+      font-size: 18px;
+      padding: 16px 32px;
+      border-radius: 50px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .talk-button.talking {
+      background: #ffb300;
+    }
+
+    .volume-meter {
+      height: 8px;
+      background: #eee;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+
+    .volume-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #FFCB00, #ff8c00);
+      border-radius: 4px;
+      width: 0%;
+    }
+
+    .connection-stats {
+      display: flex;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .stat-card {
+      background: #fff;
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-card h4 {
+      font-size: 0.9em;
+      color: #777;
+      margin: 0 0 4px 0;
+    }
+
+    .stat-value {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .log {
+      background: #f7f7f7;
+      padding: 15px;
+      border-radius: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 12px;
+      font-family: monospace;
+      text-align: left;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>💕 Dating Walkie-Talkie</h1>
+    <div class="tagline">Find love through voice • Connect instantly • Skip to next match</div>
+
+    <div class="instructions">
+      <p><strong>🎙️ Voice Dating Revolution</strong></p>
+      <p>Skip the photos, skip the profiles - just pure voice connection! Get matched randomly with someone new and have
+        an authentic conversation.</p>
+    </div>
+
+    <div class="profile-setup" id="profileSetup">
+      <h3>👤 Quick Profile Setup</h3>
+      <div class="input-group">
+        <input type="text" id="nameInput" class="profile-input" placeholder="Your name" maxlength="20">
+        <input type="number" id="ageInput" class="profile-input" placeholder="Age" min="18" max="99">
+        <select id="genderInput" class="profile-input">
+          <option value="">Select gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <select id="lookingForInput" class="profile-input">
+          <option value="">Looking for</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="any">Anyone</option>
+        </select>
+        <input type="text" id="locationInput" class="profile-input" placeholder="City (optional)" maxlength="30">
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="findMatchBtn" class="find-match-btn">💖 Find My Match</button>
+      <button id="testAudioBtn">🔊 Test Audio</button>
+    </div>
+
+    <div class="matching-status" id="matchingStatus">
+      <div class="status-text" id="statusText">Ready to find love! 💕</div>
+      <div class="partner-info" id="partnerInfo"></div>
+    </div>
+
+    <div class="controls" id="matchControls" style="display: none;">
+      <button id="talkBtn" class="talk-button" disabled>
+        🎙️ HOLD TO TALK
+      </button>
+      <div class="volume-meter">
+        <div class="volume-bar" id="volumeBar"></div>
+      </div>
+      <small>Hold button or SPACEBAR to talk • Release to listen</small>
+      <br><br>
+      <button id="nextBtn" class="next-btn">⏭️ Next Match</button>
+      <button id="endBtn">❌ End Session</button>
+    </div>
+
+    <div class="connection-stats" id="statsPanel" style="display: none;">
+      <div class="stat-card">
+        <h4>🌐 Connection</h4>
+        <div class="stat-value" id="connectionStatus">Offline</div>
+      </div>
+      <div class="stat-card">
+        <h4>👥 Users Online</h4>
+        <div class="stat-value" id="usersOnline">0</div>
+      </div>
+    </div>
+
+    <div class="log" id="log">
+      <div class="log-entry">
+        <span class="timestamp">[SYSTEM]</span> 💕 Welcome to Dating Walkie-Talkie!
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class DatingWalkieTalkie {
+      constructor() {
+        this.ws = null;
+        this.mediaRecorder = null;
+        this.audioContext = null;
+        this.micStream = null;
+        this.analyser = null;
+        this.isConnected = false;
+        this.isTalking = false;
+        this.isMatched = false;
+        this.currentPartner = null;
+        this.recordingMimeType = null;
+        this.profile = {};
+
+        this.initElements();
+        this.initAudio();
+        this.setupKeyboardControls();
+        this.log('💕 Dating Walkie-Talkie initialized! Ready to find your match.', 'info');
+      }
+
+      initElements() {
+        this.nameInput = document.getElementById('nameInput');
+        this.ageInput = document.getElementById('ageInput');
+        this.genderInput = document.getElementById('genderInput');
+        this.lookingForInput = document.getElementById('lookingForInput');
+        this.locationInput = document.getElementById('locationInput');
+
+        this.findMatchBtn = document.getElementById('findMatchBtn');
+        this.testAudioBtn = document.getElementById('testAudioBtn');
+        this.talkBtn = document.getElementById('talkBtn');
+        this.nextBtn = document.getElementById('nextBtn');
+        this.endBtn = document.getElementById('endBtn');
+
+        this.matchingStatus = document.getElementById('matchingStatus');
+        this.statusText = document.getElementById('statusText');
+        this.partnerInfo = document.getElementById('partnerInfo');
+        this.matchControls = document.getElementById('matchControls');
+        this.statsPanel = document.getElementById('statsPanel');
+
+        this.connectionStatus = document.getElementById('connectionStatus');
+        this.usersOnline = document.getElementById('usersOnline');
+        this.logDiv = document.getElementById('log');
+        this.volumeBar = document.getElementById('volumeBar');
+
+        this.findMatchBtn.onclick = () => this.startMatching();
+        this.testAudioBtn.onclick = () => this.testAudio();
+        this.nextBtn.onclick = () => this.findNextMatch();
+        this.endBtn.onclick = () => this.endSession();
+
+        // Talk button events
+        this.talkBtn.onmousedown = (e) => {
+          e.preventDefault();
+          this.startTalking();
+        };
+        this.talkBtn.onmouseup = () => this.stopTalking();
+        this.talkBtn.onmouseleave = () => this.stopTalking();
+
+        // Mobile touch events
+        this.talkBtn.ontouchstart = (e) => {
+          e.preventDefault();
+          this.startTalking();
+        };
+        this.talkBtn.ontouchend = (e) => {
+          e.preventDefault();
+          this.stopTalking();
+        };
+      }
+
+      setupKeyboardControls() {
+        let spacePressed = false;
+
+        document.onkeydown = (e) => {
+          if (e.code === 'Space' && !spacePressed && this.isMatched && !e.target.matches('input, select')) {
+            e.preventDefault();
+            spacePressed = true;
+            this.startTalking();
+          }
+        };
+
+        document.onkeyup = (e) => {
+          if (e.code === 'Space' && spacePressed) {
+            e.preventDefault();
+            spacePressed = false;
+            this.stopTalking();
+          }
+        };
+      }
+
+      async initAudio() {
+        try {
+          this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          this.log('🔊 Audio system ready', 'success');
+
+          const resumeAudio = async () => {
+            if (this.audioContext.state === 'suspended') {
+              await this.audioContext.resume();
+              this.log('🔊 Audio activated after user interaction', 'success');
+            }
+            document.removeEventListener('click', resumeAudio);
+          };
+          document.addEventListener('click', resumeAudio);
+
+        } catch (err) {
+          this.log('❌ Audio initialization failed: ' + err.message, 'error');
+        }
+      }
+
+      validateProfile() {
+        const name = this.nameInput.value.trim();
+        const age = parseInt(this.ageInput.value);
+        const gender = this.genderInput.value;
+        const lookingFor = this.lookingForInput.value;
+
+        if (!name) {
+          alert('Please enter your name');
+          return false;
+        }
+
+        if (!age || age < 18 || age > 99) {
+          alert('Please enter a valid age (18-99)');
+          return false;
+        }
+
+        if (!gender) {
+          alert('Please select your gender');
+          return false;
+        }
+
+        if (!lookingFor) {
+          alert('Please select who you\'re looking for');
+          return false;
+        }
+
+        this.profile = {
+          name: name,
+          age: age,
+          gender: gender,
+          lookingFor: lookingFor,
+          location: this.locationInput.value.trim() || null
+        };
+
+        return true;
+      }
+
+      async startMatching() {
+        if (!this.validateProfile()) return;
+
+        try {
+          this.log('🔍 Starting to find your perfect match...', 'info');
+
+          // Connect to WebSocket server
+          const wsUrl = `wss://ultimate-polliwog-climbing.ngrok-free.app/ws`;
+          this.ws = new WebSocket(wsUrl);
+
+          this.ws.onopen = () => {
+            this.log('✅ Connected to dating server', 'success');
+            this.isConnected = true;
+            this.connectionStatus.textContent = 'Connected';
+            this.statsPanel.style.display = 'block';
+            this.requestMatch();
+          };
+
+          this.ws.onmessage = (event) => {
+            this.handleWebSocketMessage(event);
+          };
+
+          this.ws.onclose = () => {
+            this.handleDisconnection();
+            this.log('💔 Disconnected from dating server', 'info');
+          };
+
+          this.ws.onerror = (error) => {
+            this.log('❌ Connection failed', 'error');
+            this.showServerInfo();
+          };
+
+          // Update UI
+          this.findMatchBtn.disabled = true;
+          this.statusText.textContent = 'Connecting to dating server...';
+
+        } catch (error) {
+          this.log('❌ Failed to start matching: ' + error.message, 'error');
+          this.showServerInfo();
+        }
+      }
+
+      requestMatch() {
+        this.statusText.innerHTML = '<span class="matching-animation">💕</span> Finding your perfect match...';
+        this.partnerInfo.textContent = 'Searching through all the singles...';
+
+        this.ws.send(JSON.stringify({
+          type: 'find_match',
+          profile: this.profile
+        }));
+
+        this.log('💖 Looking for compatible matches...', 'info');
+      }
+
+      handleWebSocketMessage(event) {
+        // Handle binary data (audio)
+        if (event.data instanceof Blob || event.data instanceof ArrayBuffer) {
+          if (this.isMatched) {
+            this.log(`📥 Received voice message from ${this.currentPartner?.name || 'your match'}`, 'receive');
+            console.log({data: event.data})
+            this.playReceivedAudio(event.data instanceof Blob ? event.data : new Blob([event.data]));
+          }
+          return;
+        }
+
+        // Handle JSON messages
+        try {
+          const message = JSON.parse(event.data);
+
+          switch (message.type) {
+            case 'connected':
+              this.log(message.message, 'success');
+              break;
+
+            case 'match_found':
+              this.handleMatchFound(message);
+              break;
+
+            case 'match_ended':
+              this.handleMatchEnded(message);
+              break;
+
+            case 'partner_disconnected':
+              this.handlePartnerDisconnected();
+              break;
+
+            case 'stats_update':
+              this.updateStats(message.stats);
+              break;
+
+            case 'no_matches':
+              this.handleNoMatches();
+              break;
+
+            default:
+              console.log('Unknown message type:', message.type);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      }
+
+      handleMatchFound(message) {
+        this.isMatched = true;
+        this.currentPartner = message.partner;
+
+        const partnerName = this.currentPartner.name || 'Mystery Person';
+        const partnerAge = this.currentPartner.age ? `, ${this.currentPartner.age}` : '';
+        const partnerLocation = this.currentPartner.location ? ` from ${this.currentPartner.location}` : '';
+
+        this.statusText.textContent = `💕 Matched with ${partnerName}!`;
+        this.partnerInfo.textContent = `${partnerName}${partnerAge}${partnerLocation}`;
+        this.matchingStatus.classList.add('connected');
+
+        this.matchControls.style.display = 'block';
+
+        this.log(`💖 You've been matched with ${partnerName}! Start talking...`, 'success');
+        this.setupMicrophone();
+      }
+
+      handleMatchEnded(message) {
+        this.isMatched = false;
+        this.currentPartner = null;
+
+        this.statusText.textContent = 'Match ended';
+        this.partnerInfo.textContent = message.reason || 'Your partner found their next match';
+        this.matchingStatus.classList.remove('connected');
+
+        this.matchControls.style.display = 'none';
+        this.talkBtn.disabled = true;
+        this.findMatchBtn.disabled = false;
+
+        this.log('💔 Match ended. Ready to find someone new!', 'info');
+
+        // Clean up microphone
+        if (this.micStream) {
+          this.micStream.getTracks().forEach(track => track.stop());
+          this.micStream = null;
+        }
+      }
+
+      handlePartnerDisconnected() {
+        this.handleMatchEnded({ reason: 'Your partner disconnected' });
+      }
+
+      handleNoMatches() {
+        this.statusText.textContent = 'No matches available right now';
+        this.partnerInfo.textContent = 'Waiting for more users to join...';
+
+        this.log('😔 No matches found. More users coming soon!', 'info');
+
+        setTimeout(() => {
+          if (this.isConnected && !this.isMatched) {
+            this.requestMatch();
+          }
+        }, 5000);
+      }
+
+      updateStats(stats) {
+        this.usersOnline.textContent = stats.usersOnline || 0;
+      }
+
+      async setupMicrophone() {
+        try {
+          this.micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+              sampleRate: 16000
+            }
+          });
+
+          // Setup volume monitoring
+          this.analyser = this.audioContext.createAnalyser();
+          const source = this.audioContext.createMediaStreamSource(this.micStream);
+          source.connect(this.analyser);
+
+          this.startVolumeMonitoring();
+          this.log('🎤 Microphone ready for voice chat', 'success');
+
+          this.talkBtn.disabled = false;
+
+        } catch (error) {
+          this.log('❌ Microphone access denied: ' + error.message, 'error');
+          alert('🎤 Microphone access required for voice dating!');
+        }
+      }
+
+      startVolumeMonitoring() {
+        if (!this.analyser) return;
+
+        this.analyser.fftSize = 256;
+        const bufferLength = this.analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const updateVolume = () => {
+          if (!this.analyser) return;
+
+          this.analyser.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+          const volumePercent = Math.min(100, (average / 128) * 100);
+
+          if (this.isTalking) {
+            this.volumeBar.style.width = volumePercent + '%';
+          } else {
+            this.volumeBar.style.width = '0%';
+          }
+
+          requestAnimationFrame(updateVolume);
+        };
+
+        updateVolume();
+      }
+
+      getSupportedMimeType() {
+        const types = [
+          'audio/webm;codecs=opus',
+          'audio/webm;codecs=vorbis',
+          'audio/webm',
+          'audio/ogg;codecs=opus',
+          'audio/ogg',
+          'audio/mp4',
+          'audio/wav'
+        ];
+
+        for (const type of types) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            const audio = new Audio();
+            const canPlay = audio.canPlayType(type);
+            if (canPlay !== '') {
+              return type;
+            }
+          }
+        }
+
+        return null;
+      }
+
+      async startTalking() {
+        if (!this.isMatched || this.isTalking || !this.micStream) return;
+
+        try {
+          if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+          }
+
+          const mimeType = this.getSupportedMimeType();
+          if (!mimeType) {
+            this.log('❌ No supported audio format', 'error');
+            return;
+          }
+
+          this.recordingMimeType = mimeType;
+          this.audioChunks = [];
+
+          this.mediaRecorder = new MediaRecorder(this.micStream, {
+            mimeType: mimeType,
+            audioBitsPerSecond: 64000
+          });
+
+          this.mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              this.audioChunks.push(event.data);
+            }
+          };
+
+          this.mediaRecorder.onstop = () => {
+            if (this.audioChunks.length > 0 && this.ws && this.ws.readyState === WebSocket.OPEN) {
+              const audioBlob = new Blob(this.audioChunks, { type: mimeType });
+              this.ws.send(audioBlob);
+              this.log(`💬 Sent voice message to ${this.currentPartner?.name || 'your match'}`, 'transmit');
+            }
+            this.audioChunks = [];
+          };
+
+          this.mediaRecorder.start();
+          this.isTalking = true;
+          this.talkBtn.classList.add('talking');
+          this.talkBtn.textContent = '🗣️ TALKING TO YOUR MATCH';
+
+        } catch (error) {
+          this.log('❌ Recording failed: ' + error.message, 'error');
+        }
+      }
+
+      stopTalking() {
+        if (!this.isTalking) return;
+
+        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+          this.mediaRecorder.stop();
+        }
+
+        this.isTalking = false;
+        this.talkBtn.classList.remove('talking');
+        this.talkBtn.textContent = '🎙️ HOLD TO TALK';
+        this.volumeBar.style.width = '0%';
+      }
+
+      async playReceivedAudio(audioBlob) {
+        if (this.isTalking) return;
+
+        try {
+          if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+          }
+
+          const audio = new Audio();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          audio.src = audioUrl;
+          audio.volume = 1.0;
+
+          audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+          };
+
+          audio.onerror = () => {
+            this.log('❌ Error playing received audio', 'error');
+            URL.revokeObjectURL(audioUrl);
+          };
+
+          await audio.play();
+
+        } catch (error) {
+          this.log('❌ Audio playback failed: ' + error.message, 'error');
+        }
+      }
+
+      findNextMatch() {
+        if (!this.isConnected) return;
+
+        this.log('⏭️ Looking for your next match...', 'info');
+
+        this.endSession();
+
+        // Request new match
+        setTimeout(() => {
+          this.startMatching();
+        }, 2000);
+      }
+
+      endSession() {
+        if (this.ws) {
+          this.ws.send(JSON.stringify({
+            type: 'end_session'
+          }));
+          this.ws.close();
+        }
+
+        this.handleDisconnection();
+        this.log('👋 Session ended. Thanks for using Dating Walkie-Talkie!', 'info');
+      }
+
+      nextMatch() {
+        if (this.ws) {
+          this.ws.send(JSON.stringify({
+            type: 'next_match'
+          }))
+        }
+      }
+
+      handleDisconnection() {
+        if (this.micStream) {
+          this.micStream.getTracks().forEach(track => track.stop());
+          this.micStream = null;
+        }
+
+        this.isConnected = false;
+        this.isMatched = false;
+        this.isTalking = false;
+        this.ws = null;
+        this.currentPartner = null;
+
+        this.statusText.textContent = 'Disconnected - Ready to find love! 💕';
+        this.partnerInfo.textContent = '';
+        this.matchingStatus.classList.remove('connected');
+
+        this.findMatchBtn.disabled = false;
+        this.matchControls.style.display = 'none';
+        this.statsPanel.style.display = 'none';
+
+        this.connectionStatus.textContent = 'Offline';
+        this.usersOnline.textContent = '0';
+      }
+
+      showServerInfo() {
+        alert(`💕 Dating Walkie-Talkie Server Required
+
+To use this dating app, you need to run the server:
+
+1. Install dependencies:
+   npm install hyperswarm ws
+
+2. Run the dating server:
+   node dating-server.js
+
+3. Open this page and start finding matches!
+
+Features:
+💖 Random voice-based matching
+🎙️ Real-time voice chat
+⏭️ Skip to next match instantly
+🌐 P2P connections via Hyperswarm`);
+      }
+
+      async testAudio() {
+        try {
+          this.log('🔊 Testing audio system...', 'info');
+
+          if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+          }
+
+          // Generate test beep
+          const oscillator = this.audioContext.createOscillator();
+          const gainNode = this.audioContext.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(this.audioContext.destination);
+
+          oscillator.frequency.setValueAtTime(880, this.audioContext.currentTime); // A5 note
+          gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0.1, this.audioContext.currentTime + 0.01);
+          gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 0.3);
+
+          oscillator.start(this.audioContext.currentTime);
+          oscillator.stop(this.audioContext.currentTime + 0.3);
+
+          this.log('🔊 Test sound played! Audio is working.', 'success');
+
+          // Test microphone access
+          try {
+            const testStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            testStream.getTracks().forEach(track => track.stop());
+            this.log('🎤 Microphone access granted', 'success');
+          } catch (micError) {
+            this.log('❌ Microphone access denied', 'error');
+          }
+
+        } catch (error) {
+          this.log('🔊 Audio test failed: ' + error.message, 'error');
+        }
+      }
+
+      log(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+
+        let icon = '💕';
+        switch (type) {
+          case 'success': icon = '✅'; break;
+          case 'error': icon = '❌'; break;
+          case 'transmit': icon = '📤'; break;
+          case 'receive': icon = '📥'; break;
+          case 'warning': icon = '⚠️'; break;
+          case 'info': icon = 'ℹ️'; break;
+        }
+
+        logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${icon} ${message}`;
+        this.logDiv.appendChild(logEntry);
+        this.logDiv.scrollTop = this.logDiv.scrollHeight;
+
+        // Keep only last 50 entries
+        while (this.logDiv.children.length > 50) {
+          this.logDiv.removeChild(this.logDiv.firstChild);
+        }
+      }
+    }
+
+    // Initialize when page loads
+    window.onload = () => {
+      window.datingApp = new DatingWalkieTalkie();
+    };
+  </script>
+</body>
+
+</html>

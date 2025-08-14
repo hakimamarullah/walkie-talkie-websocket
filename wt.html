@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperswarm Web Walkie-Talkie</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .status-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .status-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .status-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .status-value {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        
+        .controls {
+            margin: 30px 0;
+        }
+        
+        .input-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .channel-input {
+            padding: 15px 20px;
+            font-size: 16px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 25px;
+            backdrop-filter: blur(5px);
+            min-width: 200px;
+        }
+        
+        .channel-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            background: linear-gradient(45deg, #666, #555);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .talk-button {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            font-size: 20px;
+            padding: 25px 50px;
+            margin: 20px;
+            border-radius: 50px;
+        }
+        
+        .talk-button.talking {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .volume-meter {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .volume-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #FFC107, #F44336);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin-top: 30px;
+        }
+        
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .timestamp {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .peer-list {
+            margin: 15px 0;
+        }
+        
+        .peer {
+            display: inline-block;
+            background: rgba(76, 175, 80, 0.3);
+            padding: 5px 10px;
+            margin: 3px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Hyperswarm Web Walkie-Talkie</h1>
+        
+        <div class="instructions">
+            <p><strong>🚀 P2P Walkie-Talkie using Hyperswarm DHT</strong></p>
+            <p>Enter a channel name to join a distributed hash table topic. All users with the same channel name will be connected directly peer-to-peer!</p>
+        </div>
+        
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="channelInput" class="channel-input" placeholder="Enter channel name" value="walkie-talkie-general">
+                <button id="joinBtn">🔗 Join Swarm</button>
+                <button id="leaveBtn" disabled>🔌 Leave Swarm</button>
+                <button id="testAudioBtn">🔊 Test Audio</button>
+            </div>
+        </div>
+        
+        <div class="status-panel">
+            <div class="status-card">
+                <h3>🌐 Swarm Status</h3>
+                <div class="status-value" id="swarmStatus">Not Connected</div>
+            </div>
+            <div class="status-card">
+                <h3>👥 Connected Peers</h3>
+                <div class="status-value" id="peerCount">0</div>
+                <div class="peer-list" id="peerList"></div>
+            </div>
+            <div class="status-card">
+                <h3>📡 DHT Nodes</h3>
+                <div class="status-value" id="dhtNodes">0</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="talkBtn" class="talk-button" disabled>
+                🎙️ HOLD TO TALK
+            </button>
+            <div class="volume-meter">
+                <div class="volume-bar" id="volumeBar"></div>
+            </div>
+            <small>Hold button or SPACEBAR to transmit • Release to listen</small>
+        </div>
+        
+        <div class="log" id="log">
+            <div class="log-entry">
+                <span class="timestamp">[SYSTEM]</span> 🌐 Hyperswarm Web Walkie-Talkie Ready
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class HyperswarmWalkieTalkie {
+            constructor() {
+                this.ws = null;
+                this.mediaRecorder = null;
+                this.audioContext = null;
+                this.micStream = null;
+                this.analyser = null;
+                this.isConnected = false;
+                this.isTalking = false;
+                this.currentChannel = null;
+                this.peerCount = 0;
+                this.dhtNodes = 0;
+                this.recordingMimeType = null;
+                
+                this.initElements();
+                this.initAudio();
+                this.setupKeyboardControls();
+                this.log('System initialized. Ready to connect to Hyperswarm bridge.', 'info');
+            }
+            
+            initElements() {
+                this.channelInput = document.getElementById('channelInput');
+                this.joinBtn = document.getElementById('joinBtn');
+                this.leaveBtn = document.getElementById('leaveBtn');
+                this.testAudioBtn = document.getElementById('testAudioBtn');
+                this.talkBtn = document.getElementById('talkBtn');
+                this.swarmStatusDiv = document.getElementById('swarmStatus');
+                this.peerCountDiv = document.getElementById('peerCount');
+                this.peerListDiv = document.getElementById('peerList');
+                this.dhtNodesDiv = document.getElementById('dhtNodes');
+                this.logDiv = document.getElementById('log');
+                this.volumeBar = document.getElementById('volumeBar');
+                
+                this.joinBtn.onclick = () => this.connectToBridge();
+                this.leaveBtn.onclick = () => this.disconnectFromBridge();
+                this.testAudioBtn.onclick = () => this.testAudio();
+                
+                // Talk button events
+                this.talkBtn.onmousedown = (e) => {
+                    e.preventDefault();
+                    this.startTalking();
+                };
+                this.talkBtn.onmouseup = () => this.stopTalking();
+                this.talkBtn.onmouseleave = () => this.stopTalking();
+                
+                // Mobile touch events
+                this.talkBtn.ontouchstart = (e) => {
+                    e.preventDefault();
+                    this.startTalking();
+                };
+                this.talkBtn.ontouchend = (e) => {
+                    e.preventDefault();
+                    this.stopTalking();
+                };
+            }
+            
+            setupKeyboardControls() {
+                let spacePressed = false;
+                
+                document.onkeydown = (e) => {
+                    if (e.code === 'Space' && !spacePressed && this.isConnected && !e.target.matches('input')) {
+                        e.preventDefault();
+                        spacePressed = true;
+                        this.startTalking();
+                    }
+                };
+                
+                document.onkeyup = (e) => {
+                    if (e.code === 'Space' && spacePressed) {
+                        e.preventDefault();
+                        spacePressed = false;
+                        this.stopTalking();
+                    }
+                };
+            }
+            
+            async initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.log('Audio context initialized', 'success');
+                    
+                    // Add click handler to resume audio context (required by browsers)
+                    const resumeAudio = async () => {
+                        if (this.audioContext.state === 'suspended') {
+                            await this.audioContext.resume();
+                            this.log('🔊 Audio context resumed after user interaction', 'success');
+                        }
+                        document.removeEventListener('click', resumeAudio);
+                    };
+                    document.addEventListener('click', resumeAudio);
+                    
+                } catch (err) {
+                    this.log('Audio init failed: ' + err.message, 'error');
+                }
+            }
+            
+            async connectToBridge() {
+                const channel = this.channelInput.value.trim();
+                if (!channel) {
+                    alert('Please enter a channel name');
+                    return;
+                }
+                
+                try {
+                    this.currentChannel = channel;
+                    this.log(`Connecting to Hyperswarm bridge...`, 'info');
+                    
+                    // Connect to WebSocket bridge server
+                    const wsUrl = `wss://ultimate-polliwog-climbing.ngrok-free.app/ws`;
+                    this.ws = new WebSocket(wsUrl);
+                    
+                    this.ws.onopen = () => {
+                        this.log('Connected to bridge server', 'success');
+                        this.joinSwarmChannel(channel);
+                    };
+                    
+                    this.ws.onmessage = (event) => {
+                        this.handleWebSocketMessage(event);
+                    };
+                    
+                    this.ws.onclose = () => {
+                        this.handleDisconnection();
+                        this.log('Disconnected from bridge server', 'info');
+                    };
+                    
+                    this.ws.onerror = (error) => {
+                        this.log('WebSocket connection failed', 'error');
+                        this.showBridgeInfo();
+                    };
+                    
+                } catch (error) {
+                    this.log('Failed to connect: ' + error.message, 'error');
+                    this.showBridgeInfo();
+                }
+            }
+            
+            joinSwarmChannel(channel) {
+                this.ws.send(JSON.stringify({
+                    type: 'join_channel',
+                    channel: channel
+                }));
+                
+                this.log(`Joining Hyperswarm channel: ${channel}`, 'info');
+            }
+            
+            handleWebSocketMessage(event) {
+                // Handle binary data (audio)
+                if (event.data instanceof Blob) {
+                    this.log(`📥 Received audio data: ${event.data.size} bytes, type: ${event.data.type}`, 'receive');
+                    this.playReceivedAudio(event.data);
+                    return;
+                }
+                
+                // Handle ArrayBuffer (audio)
+                if (event.data instanceof ArrayBuffer) {
+                    this.log(`📥 Received audio ArrayBuffer: ${event.data.byteLength} bytes`, 'receive');
+                    const audioBlob = new Blob([event.data], { type: this.recordingMimeType || 'audio/webm' });
+                    this.playReceivedAudio(audioBlob);
+                    return;
+                }
+                
+                // Handle JSON messages
+                try {
+                    const message = JSON.parse(event.data);
+                    
+                    switch (message.type) {
+                        case 'connected':
+                            this.log(message.message, 'success');
+                            break;
+                            
+                        case 'joined_channel':
+                            this.handleChannelJoined(message);
+                            break;
+                            
+                        case 'peer_joined':
+                            this.log(`✅ Hyperswarm peer joined: ${message.peerId}`, 'success');
+                            this.updatePeerCount(message.peerCount);
+                            break;
+                            
+                        case 'peer_left':
+                            this.log(`❌ Hyperswarm peer left: ${message.peerId}`, 'info');
+                            this.updatePeerCount(message.peerCount);
+                            break;
+                            
+                        case 'peer_count_updated':
+                            this.updatePeerCount(message.hyperswarmPeers);
+                            this.updateDHTNodes(message.webSocketClients);
+                            break;
+                            
+                        case 'audio_received':
+                            this.log(`📥 Audio message received from ${message.from}`, 'receive');
+                            break;
+                            
+                        case 'pong':
+                            // Handle ping response
+                            break;
+                            
+                        default:
+                            console.log('Unknown message type:', message.type);
+                    }
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
+            }
+            
+            handleChannelJoined(message) {
+                this.isConnected = true;
+                this.updateSwarmStatus(`Connected: ${message.channel}`);
+                this.updatePeerCount(message.peerCount);
+                this.updateDHTNodes(message.wsClientCount);
+                
+                this.joinBtn.disabled = true;
+                this.leaveBtn.disabled = false;
+                this.channelInput.disabled = true;
+                
+                this.log(`✅ Successfully joined channel: ${message.channel}`, 'success');
+                this.log('🔍 Looking for Hyperswarm peers...', 'info');
+                
+                // Setup microphone
+                this.setupMicrophone();
+            }
+            
+            async setupMicrophone() {
+                try {
+                    this.micStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true,
+                            sampleRate: 16000
+                        }
+                    });
+                    
+                    // Setup volume monitoring
+                    this.analyser = this.audioContext.createAnalyser();
+                    const source = this.audioContext.createMediaStreamSource(this.micStream);
+                    source.connect(this.analyser);
+                    
+                    this.startVolumeMonitoring();
+                    this.log('🎤 Microphone ready', 'success');
+                    
+                    // Enable talk button
+                    this.talkBtn.disabled = false;
+                    
+                } catch (error) {
+                    this.log('Microphone access denied: ' + error.message, 'error');
+                    alert('🎤 Microphone access required for walkie-talkie functionality!');
+                }
+            }
+            
+            startVolumeMonitoring() {
+                if (!this.analyser) return;
+                
+                this.analyser.fftSize = 256;
+                const bufferLength = this.analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                
+                const updateVolume = () => {
+                    if (!this.analyser) return;
+                    
+                    this.analyser.getByteFrequencyData(dataArray);
+                    const average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+                    const volumePercent = Math.min(100, (average / 128) * 100);
+                    
+                    if (this.isTalking) {
+                        this.volumeBar.style.width = volumePercent + '%';
+                    } else {
+                        this.volumeBar.style.width = '0%';
+                    }
+                    
+                    requestAnimationFrame(updateVolume);
+                };
+                
+                updateVolume();
+            }
+            
+            // Get a MIME type that's supported for both recording AND playback
+            getSupportedMimeType() {
+                const types = [
+                    'audio/webm;codecs=opus',
+                    'audio/webm;codecs=vorbis', 
+                    'audio/webm',
+                    'audio/ogg;codecs=opus',
+                    'audio/ogg',
+                    'audio/mp4',
+                    'audio/wav'
+                ];
+                
+                for (const type of types) {
+                    if (MediaRecorder.isTypeSupported(type)) {
+                        // Also check if the browser can play this format
+                        const audio = new Audio();
+                        const canPlay = audio.canPlayType(type);
+                        if (canPlay !== '') {
+                            this.log(`📤 Selected compatible format: ${type} (playback support: ${canPlay})`, 'info');
+                            return type;
+                        }
+                    }
+                }
+                
+                this.log('❌ No compatible audio format found', 'error');
+                return null;
+            }
+            
+            async startTalking() {
+                if (!this.isConnected || this.isTalking || !this.micStream) return;
+                
+                try {
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                    }
+                    
+                    const mimeType = this.getSupportedMimeType();
+                    if (!mimeType) {
+                        this.log('❌ No supported audio format found', 'error');
+                        return;
+                    }
+                    
+                    this.recordingMimeType = mimeType;
+                    this.log(`📤 Recording with MIME type: ${mimeType}`, 'info');
+                    
+                    // Initialize audio chunks buffer
+                    this.audioChunks = [];
+                    
+                    this.mediaRecorder = new MediaRecorder(this.micStream, {
+                        mimeType: mimeType,
+                        audioBitsPerSecond: 64000
+                    });
+                    
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            this.audioChunks.push(event.data);
+                            this.log(`📤 Collected audio chunk: ${event.data.size} bytes`, 'transmit');
+                        }
+                    };
+                    
+                    this.mediaRecorder.onstop = () => {
+                        if (this.audioChunks.length > 0 && this.ws && this.ws.readyState === WebSocket.OPEN) {
+                            // Combine all chunks into a single blob
+                            const completeAudio = new Blob(this.audioChunks, { type: mimeType });
+                            this.log(`📤 Sending complete audio: ${completeAudio.size} bytes, type: "${completeAudio.type}"`, 'transmit');
+                            
+                            // Send the complete audio blob
+                            this.ws.send(completeAudio);
+                        }
+                        this.audioChunks = [];
+                    };
+                    
+                    this.mediaRecorder.onerror = (event) => {
+                        this.log('❌ MediaRecorder error: ' + event.error, 'error');
+                    };
+                    
+                    // Use longer timeslice for better audio quality
+                    this.mediaRecorder.start();
+                    this.isTalking = true;
+                    this.talkBtn.classList.add('talking');
+                    this.talkBtn.textContent = '📡 TRANSMITTING';
+                    this.log('📤 Started recording audio...', 'transmit');
+                    
+                } catch (error) {
+                    this.log('Recording failed: ' + error.message, 'error');
+                }
+            }
+            
+            stopTalking() {
+                if (!this.isTalking) return;
+                
+                if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                    this.mediaRecorder.stop();
+                }
+                
+                this.isTalking = false;
+                this.talkBtn.classList.remove('talking');
+                this.talkBtn.textContent = '🎙️ HOLD TO TALK';
+                this.volumeBar.style.width = '0%';
+                this.log('📤 Stopped recording, sending complete audio...', 'info');
+            }
+            
+            async playReceivedAudio(audioBlob) {
+                if (this.isTalking) return; // Don't play while talking
+                
+                try {
+                    // Resume audio context if suspended (required by browsers)
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                        this.log('🔊 Audio context resumed', 'info');
+                    }
+                    
+                    this.log(`📥 Processing audio: ${audioBlob.size} bytes, type: "${audioBlob.type}"`, 'receive');
+                    
+                    // First try: Direct HTML5 audio with proper MIME type detection
+                    await this.playWithHTML5Audio(audioBlob);
+                    
+                } catch (error) {
+                    this.log('❌ All audio playback methods failed: ' + error.message, 'error');
+                }
+            }
+            
+            async playWithHTML5Audio(audioBlob) {
+                return new Promise((resolve, reject) => {
+                    const audio = new Audio();
+                    let audioUrl = null;
+                    
+                    // Use the same MIME type logic as recording
+                    let mimeType = audioBlob.type;
+                    if (!mimeType || mimeType === 'application/octet-stream') {
+                        // Try to match the recording format
+                        mimeType = this.recordingMimeType || this.getSupportedMimeType() || 'audio/webm';
+                        audioBlob = new Blob([audioBlob], { type: mimeType });
+                        this.log(`📥 Corrected MIME type to: ${mimeType}`, 'info');
+                    }
+                    
+                    // Validate that we can play this format
+                    const testAudio = new Audio();
+                    const canPlay = testAudio.canPlayType(mimeType);
+                    if (canPlay === '') {
+                        this.log(`⚠️ Browser may not support playback of ${mimeType}`, 'warning');
+                    }
+                    
+                    audioUrl = URL.createObjectURL(audioBlob);
+                    audio.src = audioUrl;
+                    audio.volume = 1.0;
+                    
+                    // Set up event handlers
+                    audio.onloadstart = () => this.log('📥 Loading received audio...', 'info');
+                    
+                    audio.oncanplay = () => {
+                        this.log('📥 Audio ready to play', 'success');
+                    };
+                    
+                    audio.onplay = () => {
+                        this.log('📥 Started playing received audio', 'receive');
+                    };
+                    
+                    audio.onended = () => {
+                        this.log('📥 Finished playing received audio', 'info');
+                        if (audioUrl) URL.revokeObjectURL(audioUrl);
+                        resolve();
+                    };
+                    
+                    audio.onerror = (e) => {
+                        const errorMsg = this.getAudioErrorMessage(audio.error);
+                        this.log('❌ HTML5 audio error: ' + errorMsg, 'error');
+                        this.log(`❌ Attempted to play: ${mimeType}, blob size: ${audioBlob.size}`, 'error');
+                        if (audioUrl) URL.revokeObjectURL(audioUrl);
+                        
+                        // Try Web Audio API as fallback
+                        this.playWithWebAudioAPI(audioBlob)
+                            .then(resolve)
+                            .catch(reject);
+                    };
+                    
+                    // Attempt to play
+                    audio.play().catch(playError => {
+                        this.log('❌ HTML5 audio play failed: ' + playError.message, 'error');
+                        if (audioUrl) URL.revokeObjectURL(audioUrl);
+                        
+                        // Try Web Audio API as fallback
+                        this.playWithWebAudioAPI(audioBlob)
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                });
+            }
+            
+            async playWithWebAudioAPI(audioBlob) {
+                try {
+                    // Ensure AudioContext is running
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                        this.log('📥 Resumed suspended AudioContext', 'info');
+                    }
+                    
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    this.log(`📥 Attempting Web Audio API decode of ${arrayBuffer.byteLength} bytes`, 'info');
+                    
+                    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer.slice());
+                    
+                    const source = this.audioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    
+                    // Add gain control for volume
+                    const gainNode = this.audioContext.createGain();
+                    gainNode.gain.value = 1.0;
+                    
+                    source.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    source.start();
+                    
+                    this.log('📥 Playing received audio via Web Audio API', 'receive');
+                    
+                    return new Promise(resolve => {
+                        source.onended = () => {
+                            this.log('📥 Web Audio playback finished', 'info');
+                            resolve();
+                        };
+                    });
+                    
+                } catch (error) {
+                    this.log('❌ Web Audio API decode failed: ' + error.message, 'error');
+                    throw error;
+                }
+            }
+            
+            getAudioErrorMessage(error) {
+                if (!error) return 'Unknown error';
+                
+                const errorCodes = {
+                    1: 'MEDIA_ERR_ABORTED - Audio loading aborted',
+                    2: 'MEDIA_ERR_NETWORK - Network error while loading audio',
+                    3: 'MEDIA_ERR_DECODE - Audio decoding error (codec not supported or corrupted data)',
+                    4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Audio format not supported'
+                };
+                
+                return errorCodes[error.code] || `Unknown error code: ${error.code}`;
+            }
+            
+            disconnectFromBridge() {
+                if (this.ws) {
+                    this.ws.send(JSON.stringify({
+                        type: 'leave_channel'
+                    }));
+                    this.ws.close();
+                }
+                
+                this.handleDisconnection();
+            }
+            
+            handleDisconnection() {
+                if (this.micStream) {
+                    this.micStream.getTracks().forEach(track => track.stop());
+                    this.micStream = null;
+                }
+                
+                this.isConnected = false;
+                this.isTalking = false;
+                this.ws = null;
+                this.recordingMimeType = null;
+                this.audioChunks = [];
+                
+                this.updateSwarmStatus('Disconnected');
+                this.updatePeerCount(0);
+                this.updateDHTNodes(0);
+                
+                this.joinBtn.disabled = false;
+                this.leaveBtn.disabled = true;
+                this.talkBtn.disabled = true;
+                this.channelInput.disabled = false;
+                
+                this.log('🔌 Disconnected from Hyperswarm', 'info');
+            }
+            
+            updateSwarmStatus(status) {
+                this.swarmStatusDiv.textContent = status;
+            }
+            
+            updatePeerCount(count) {
+                this.peerCount = count;
+                this.peerCountDiv.textContent = count;
+                
+                // Update peer list display
+                this.peerListDiv.innerHTML = '';
+                for (let i = 0; i < count; i++) {
+                    const peerDiv = document.createElement('div');
+                    peerDiv.className = 'peer';
+                    peerDiv.textContent = `Peer ${i + 1}`;
+                    this.peerListDiv.appendChild(peerDiv);
+                }
+            }
+            
+            updateDHTNodes(count) {
+                this.dhtNodes = count;
+                this.dhtNodesDiv.textContent = count;
+            }
+            
+            showBridgeInfo() {
+                alert(`🌐 Hyperswarm Bridge Server Required
+
+To use this walkie-talkie, you need to run the bridge server:
+
+1. Install dependencies:
+   npm install hyperswarm ws
+
+2. Run the bridge server:
+   node hyperswarm-bridge.js
+
+3. Open this page at:
+   http://localhost:8080
+
+The bridge server connects browsers to the Hyperswarm P2P network!
+
+Features:
+✅ Real P2P communication via Hyperswarm
+✅ WebSocket bridge for browser compatibility  
+✅ Audio streaming between peers
+✅ DHT-based peer discovery`);
+            }
+            
+            async testAudio() {
+                try {
+                    this.log('🔊 Testing audio system...', 'info');
+                    
+                    // Resume audio context if needed
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                        this.log('🔊 Audio context resumed', 'success');
+                    }
+                    
+                    // Test 1: Generate a test beep
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime); // A4 note
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.1, this.audioContext.currentTime + 0.01);
+                    gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 0.5);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.5);
+                    
+                    this.log('🔊 Test beep played! If you heard it, audio output is working.', 'success');
+                    
+                    // Test 2: Show supported formats
+                    const formats = [
+                        'audio/webm;codecs=opus',
+                        'audio/webm;codecs=vorbis',
+                        'audio/webm',
+                        'audio/ogg;codecs=opus',
+                        'audio/ogg',
+                        'audio/mp4',
+                        'audio/wav'
+                    ];
+                    
+                    this.log('🎵 Checking MediaRecorder support:', 'info');
+                    formats.forEach(format => {
+                        const recordingSupported = MediaRecorder.isTypeSupported(format);
+                        const audio = new Audio();
+                        const playbackSupported = audio.canPlayType(format);
+                        const status = recordingSupported && playbackSupported !== '' ? '✅' : '❌';
+                        this.log(`  ${status} ${format} (rec: ${recordingSupported}, play: ${playbackSupported})`, 'info');
+                    });
+                    
+                    // Test 3: Check current recording format
+                    const currentFormat = this.getSupportedMimeType();
+                    if (currentFormat) {
+                        this.log(`🎤 Current recording format: ${currentFormat}`, 'success');
+                    }
+                    
+                    // Test 4: Check audio context info
+                    setTimeout(() => {
+                        this.log(`🔊 Audio context state: ${this.audioContext.state}`, 'info');
+                        this.log(`🔊 Sample rate: ${this.audioContext.sampleRate}Hz`, 'info');
+                        this.log(`🔊 Audio destination: ${this.audioContext.destination.channelCount} channels`, 'info');
+                    }, 100);
+                    
+                } catch (error) {
+                    this.log('🔊 Audio test failed: ' + error.message, 'error');
+                }
+            }
+            
+            log(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                
+                let icon = '📝';
+                switch(type) {
+                    case 'success': icon = '✅'; break;
+                    case 'error': icon = '❌'; break;
+                    case 'transmit': icon = '📤'; break;
+                    case 'receive': icon = '📥'; break;
+                    case 'warning': icon = '⚠️'; break;
+                    case 'info': icon = 'ℹ️'; break;
+                }
+                
+                logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${icon} ${message}`;
+                this.logDiv.appendChild(logEntry);
+                this.logDiv.scrollTop = this.logDiv.scrollHeight;
+                
+                while (this.logDiv.children.length > 100) {
+                    this.logDiv.removeChild(this.logDiv.firstChild);
+                }
+            }
+        }
+        
+        // Initialize when page loads
+        window.onload = () => {
+            window.walkieTalkie = new HyperswarmWalkieTalkie();
+        };
+    </script>
+</body>
+</html>
